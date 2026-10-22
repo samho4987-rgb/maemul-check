@@ -1,0 +1,10 @@
+{
+  "area": {
+    "abs_m2": 0.5,
+    "rel": 0.01,
+    "check_rel": 0.02
+  },
+  "approval_date": {
+    "precision": "month"
+  }
+}

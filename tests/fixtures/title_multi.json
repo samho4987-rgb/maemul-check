@@ -1,0 +1,12 @@
+{"response": {"header": {"resultCode": "00", "resultMsg": "NORMAL SERVICE."},
+  "body": {"items": {"item": [
+    {"bldNm": "더미오피스텔", "mainPurpsCdNm": "업무시설", "etcPurps": "오피스텔,제2종근린생활시설",
+     "strctCdNm": "철근콘크리트구조", "grndFlrCnt": 15, "ugrndFlrCnt": 2, "hhldCnt": 0, "fmlyCnt": 0, "hoCnt": 120,
+     "useAprDay": "20180315", "platPlc": "부산광역시 수영구 광안동 170-5번지", "dongNm": " ",
+     "indrMechUtcnt": 20, "oudrMechUtcnt": 0, "indrAutoUtcnt": 35, "oudrAutoUtcnt": 5,
+     "rideUseElvtCnt": 2, "mainAtchGbCdNm": "주건축물"},
+    {"bldNm": "", "mainPurpsCdNm": "기타시설", "etcPurps": "경비실", "grndFlrCnt": 1, "ugrndFlrCnt": 0,
+     "useAprDay": "20180315", "platPlc": "부산광역시 수영구 광안동 170-5번지", "dongNm": "",
+     "indrMechUtcnt": 0, "oudrMechUtcnt": 0, "indrAutoUtcnt": 0, "oudrAutoUtcnt": 0,
+     "rideUseElvtCnt": 0, "mainAtchGbCdNm": "부속건축물"}
+  ]}, "numOfRows": 100, "pageNo": 1, "totalCount": 2}}}

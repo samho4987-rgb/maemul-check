@@ -1,0 +1,17 @@
+{
+  "kind": "오피스텔",
+  "area_m2": 29.75,
+  "deal_type": "월세",
+  "deposit": 5000000,
+  "rent": 500000,
+  "floors_total": 15,
+  "approval_date": "2018-03",
+  "direction": "남향",
+  "rooms": 1,
+  "baths": 1,
+  "move_in": "즉시",
+  "maint_fee": 70000,
+  "parking": 1,
+  "elevator": true,
+  "office": {"name": "", "addr": "", "reg_no": "", "tel": "", "rep": ""}
+}

@@ -1,0 +1,9 @@
+{"response": {"header": {"resultCode": "00", "resultMsg": "NORMAL SERVICE."},
+  "body": {"items": {"item": [
+    {"bldNm": "더미아파트", "mainPurpsCdNm": "공동주택", "etcPurps": "아파트", "grndFlrCnt": 20, "ugrndFlrCnt": 2,
+     "hhldCnt": 80, "useAprDay": "20100601", "platPlc": "부산광역시 수영구 광안동 1번지", "dongNm": "101동",
+     "rideUseElvtCnt": 2, "mainAtchGbCdNm": "주건축물"},
+    {"bldNm": "더미아파트", "mainPurpsCdNm": "공동주택", "etcPurps": "아파트", "grndFlrCnt": 18, "ugrndFlrCnt": 2,
+     "hhldCnt": 72, "useAprDay": "20100601", "platPlc": "부산광역시 수영구 광안동 1번지", "dongNm": "102동",
+     "rideUseElvtCnt": 2, "mainAtchGbCdNm": "주건축물"}
+  ]}, "numOfRows": 100, "pageNo": 1, "totalCount": 2}}}

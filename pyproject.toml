@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "maemul-check"
+version = "0.1.0"
+description = "부동산 광고 명시사항 ↔ 건축물대장 검수기"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.11"
+dependencies = ["requests>=2.31"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[tool.setuptools.packages.find]
+include = ["maemul_check*"]
+
+[tool.setuptools.package-data]
+"maemul_check.rules" = ["*.json"]
+"maemul_check.pubdata" = ["resources/*.txt"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

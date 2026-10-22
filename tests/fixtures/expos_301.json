@@ -1,0 +1,9 @@
+{"response": {"header": {"resultCode": "00", "resultMsg": "NORMAL SERVICE."},
+  "body": {"items": {"item": [
+    {"dongNm": "", "hoNm": "301호", "flrNo": 3, "exposPubuseGbCdNm": "전유", "area": "29.75",
+     "mainPurpsCdNm": "업무시설", "etcPurps": "오피스텔"},
+    {"dongNm": "", "hoNm": "301호", "flrNo": 3, "exposPubuseGbCdNm": "공용", "area": "12.31",
+     "mainPurpsCdNm": "업무시설", "etcPurps": "계단실,복도"},
+    {"dongNm": "", "hoNm": "301호", "flrNo": -1, "exposPubuseGbCdNm": "공용", "area": "8.02",
+     "mainPurpsCdNm": "업무시설", "etcPurps": "주차장"}
+  ]}, "numOfRows": 100, "pageNo": 1, "totalCount": 3}}}

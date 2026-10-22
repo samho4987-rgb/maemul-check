@@ -1,0 +1,18 @@
+{
+  "deal_types": ["매매", "전세", "월세"],
+  "price_fields": {
+    "매매": {"price": "매매가"},
+    "전세": {"deposit": "보증금"},
+    "월세": {"deposit": "보증금", "rent": "월세"}
+  },
+  "directions": ["동", "서", "남", "북", "남동", "남서", "북동", "북서", "동남", "서남", "동북", "서북"],
+  "move_in_words": ["즉시", "협의"],
+  "maint_fee_detail_threshold": 100000,
+  "office_fields": {
+    "name": "명칭",
+    "addr": "소재지",
+    "reg_no": "등록번호",
+    "tel": "연락처",
+    "rep": "대표자"
+  }
+}
