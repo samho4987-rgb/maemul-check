@@ -126,20 +126,54 @@ README의 git clone 주소를 실제 레포 주소로 바꿔
 GitHub에 내 계정으로 maemul-check 공개 레포를 만들고 origin으로 연결해서 main 브랜치 push해. 공개 레포니까 .env가 안 올라가는지 먼저 확인해.
 ```
 
-**시작**
+**세션 시작 전**: `/clear`
+
+**① 화면 만들기**
 ```
-매물검수_설계문서.md 읽고 8절 세션 3 진행. README 하단 핸드오프부터 읽어. 6절 3단계 화면을 web/index.html 단일 파일로, 7절대로 GitHub Pages + Render 배포 준비까지. 배포 자체는 내가 한다.
+매물검수_설계문서.md 읽고 8절 세션 3 진행. README 하단 핸드오프부터 읽어. 6절 3단계 화면을 docs/index.html 단일 파일로, docs/prompts.html(PROMPTS.md를 복사 버튼 페이지로), docs/config.js(API_BASE·KAKAO_JS_KEY 자리). render.yaml은 레포 루트로 이동. 로컬 서버(8000)로 검수 1건 동작 확인이 완료 조건. 배포는 내가 브라우저에서 한다.
 ```
 
-**배포 후 확인**
+**② 커밋·push** (배포 전에 코드가 GitHub에 있어야 한다)
 ```
-배포 URL은 (여기에 입력). 실제로 열어서 검수 1건 돌리고 결과 확인해.
+전부 커밋하고 push해. 메시지는 "세션 3: 웹 화면"
 ```
 
-**마무리**
+**③ Render 배포** — 브라우저에서 (Claude Code 아님)
+1. render.com → Dashboard → **New → Blueprint** → `maemul-check` 레포 선택 → Apply
+2. 생성된 서비스 → **Environment** → 추가: `DATA_GO_KR_API_KEY` = (자기 키), `CORS_ORIGINS` = `https://<GitHub계정>.github.io`
+3. 배포 끝나면 서비스 주소 복사 (예: `https://maemul-check-api.onrender.com`) → 브라우저에서 `/api/ping` 열어 응답 확인
+
+**④ 설정값 넣기**
 ```
-핸드오프 요약 써줘. 완료/현재/다음/막힌 부분. README 하단에 추가하고 커밋해.
+docs/config.js에 API_BASE를 (Render 주소)로, KAKAO_JS_KEY를 (카카오 JS 키)로 넣고 커밋·push해
 ```
+
+**⑤ GitHub Pages 켜기** — 브라우저에서
+1. GitHub 레포 → **Settings → Pages** → Source: Deploy from a branch → Branch `main`, Folder **`/docs`** → Save
+2. 1~2분 뒤 `https://<GitHub계정>.github.io/maemul-check/` 열림
+
+**⑥ 카카오 도메인 등록** — 브라우저에서
+developers.kakao.com → 내 앱 → **플랫폼 → Web → 사이트 도메인**에 `https://<GitHub계정>.github.io` 추가
+
+**⑦ 실제 검수 1건**
+```
+배포 주소는 https://<GitHub계정>.github.io/maemul-check/ 야. 열어서 내 사무실 주소로 검수 1건 돌리고 결과 확인해. 안 되면 원인을 CORS / 카카오 도메인 / Render 환경변수 중 어디인지 짚어줘.
+```
+
+**핸드오프·커밋**
+```
+핸드오프 요약 써줘. 완료/현재/다음/막힌 부분. README 하단에 추가하고, README 맨 위에 배포 주소를 넣어. 전부 커밋하고 push. 메시지는 "세션 3: 배포 완료"
+```
+
+### 상황별
+
+| 상황 | 프롬프트 |
+|---|---|
+| React 등 프레임워크를 쓰려 함 | `설계 5절대로 단일 HTML. 빌드 없음` |
+| Render가 render.yaml을 못 찾음 | 루트에 있는지 확인: `render.yaml이 레포 루트에 있는지 확인하고 없으면 옮겨서 push` |
+| 화면에서 API 호출이 막힘(CORS) | Render Environment의 `CORS_ORIGINS` 값이 Pages 주소와 정확히 같은지(끝에 `/` 없음) |
+| 카카오 주소검색이 안 뜸 | 카카오 플랫폼 도메인에 `https://<계정>.github.io` 등록됐는지 |
+| 첫 호출이 50초 걸림 | 정상. Render 무료 플랜 콜드스타트. 화면에 안내 문구가 떠야 함 |
 
 ---
 

@@ -88,7 +88,12 @@ maemul_check/
 server/
   app.py           Flask: POST /api/verify, GET /api/ping
   quota.py         일 한도 (SQLite, KST 자정 초기화)
-  requirements.txt · render.yaml
+  requirements.txt
+docs/              GitHub Pages (Settings → Pages → main / docs)
+  index.html       3단계 화면 (단일 파일, 빌드 없음)
+  prompts.html     PROMPTS.md 를 복사 버튼 페이지로 (실행 시 불러옴)
+  config.js        API_BASE · KAKAO_JS_KEY ← 자기 값으로 바꾸는 유일한 파일
+render.yaml        Render Blueprint (Render 가 레포 루트에서 찾음)
 tests/             test_engine.py (설계 3.4 더미 5건 + 고시 룰) · test_hub.py (fixture) · test_server.py
 ```
 

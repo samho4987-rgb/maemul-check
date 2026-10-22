@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>프롬프트 모음</title>
+<meta name="description" content="매물검수를 Claude Code로 직접 만드는 편별 프롬프트 — 복사 버튼으로 바로 붙여넣기">
+<style>
+  :root {
+    --bg: #f6f7f9; --card: #fff; --text: #1b1f24; --muted: #667080; --line: #dde1e6;
+    --accent: #2457d6; --accent-weak: #e8eefc; --code-bg: #f0f2f5; --ok: #1a7f37;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #111418; --card: #1a1e24; --text: #e6e9ed; --muted: #98a2ae; --line: #2c323a;
+      --accent: #6b95ff; --accent-weak: #1d2a47; --code-bg: #232830; --ok: #6fd08c;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+    font: 15px/1.6 -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Malgun Gothic", sans-serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 20px 16px 48px; }
+  a { color: var(--accent); }
+  .top { font-size: 13px; margin-bottom: 8px; }
+  #toc { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0 4px; padding: 0; list-style: none; }
+  #toc a { display: inline-block; padding: 5px 10px; border-radius: 999px; background: var(--card);
+    border: 1px solid var(--line); text-decoration: none; color: var(--text); font-size: 13px; }
+  h1 { font-size: 22px; margin: 0 0 8px; }
+  h2 { font-size: 19px; margin: 36px 0 10px; padding-top: 8px; border-top: 1px solid var(--line); scroll-margin-top: 12px; }
+  h3 { font-size: 15px; margin: 22px 0 8px; color: var(--muted); }
+  p { margin: 10px 0; }
+  blockquote { margin: 10px 0; padding: 8px 12px; border-left: 3px solid var(--line); color: var(--muted); }
+  blockquote p { margin: 2px 0; }
+  hr { display: none; }
+  code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: .9em;
+    background: var(--code-bg); padding: 1px 5px; border-radius: 4px; }
+  .block { position: relative; margin: 8px 0 14px; }
+  .block pre { margin: 0; background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+    padding: 12px 84px 12px 14px; white-space: pre-wrap; word-break: break-word; }
+  .block pre code { background: none; padding: 0; font-size: 14px; }
+  .copy { position: absolute; top: 8px; right: 8px; font: inherit; font-size: 13px; cursor: pointer;
+    padding: 4px 10px; border-radius: 6px; border: 1px solid var(--accent); background: var(--accent); color: #fff; min-height: 30px; }
+  .copy.done { background: transparent; color: var(--ok); border-color: var(--ok); }
+  .tbl { overflow-x: auto; margin: 8px 0 14px; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; background: var(--card); }
+  th, td { border: 1px solid var(--line); padding: 7px 9px; text-align: left; vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; }
+  td code { cursor: copy; }
+  ul, ol { padding-left: 22px; margin: 8px 0; }
+  #status { color: var(--muted); }
+  .toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); background: var(--text); color: var(--bg);
+    padding: 8px 14px; border-radius: 8px; font-size: 13px; opacity: 0; transition: opacity .2s; pointer-events: none; }
+  .toast.on { opacity: 1; }
+</style>
+</head>
+<body>
+<main>
+  <div class="top"><a href="./">← 매물검수로</a></div>
+  <ul id="toc"></ul>
+  <article id="doc"><p id="status">불러오는 중…</p></article>
+</main>
+<div class="toast" id="toast">복사됨</div>
+
+<script>
+(() => {
+  "use strict";
+  // GitHub Pages(<계정>.github.io/<레포>/)면 같은 레포 main 의 PROMPTS.md, 로컬이면 ../PROMPTS.md
+  function source() {
+    const host = location.hostname;
+    if (host.endsWith(".github.io")) {
+      const owner = host.split(".")[0];
+      const repo = location.pathname.split("/").filter(Boolean)[0] || "maemul-check";
+      return { url: `https://raw.githubusercontent.com/${owner}/${repo}/main/PROMPTS.md`, link: `https://github.com/${owner}/${repo}/blob/main/PROMPTS.md` };
+    }
+    return { url: "../PROMPTS.md", link: "../PROMPTS.md" };
+  }
+
+  const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+  function inline(s) {
+    const codes = [];
+    s = s.replace(/`([^`]+)`/g, (_, c) => `\u0000${codes.push(c) - 1}\u0000`);
+    s = esc(s)
+      .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+      .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_, t, u) => `<a href="${u}">${t}</a>`);
+    return s.replace(/\u0000(\d+)\u0000/g, (_, i) => `<code>${esc(codes[i])}</code>`);
+  }
+
+  // PROMPTS.md 가 쓰는 만큼만: 제목, 코드블록, 표, 인용, 목록, 구분선, 문단
+  function render(md) {
+    const lines = md.replace(/\r\n?/g, "\n").split("\n");
+    const out = [];
+    let i = 0, para = [];
+    const flush = () => { if (para.length) out.push(`<p>${inline(para.join(" "))}</p>`), (para = []); };
+
+    while (i < lines.length) {
+      const line = lines[i];
+      if (/^```/.test(line)) {
+        flush();
+        const buf = [];
+        for (i++; i < lines.length && !/^```/.test(lines[i]); i++) buf.push(lines[i]);
+        i++;
+        out.push(`<div class="block"><pre><code>${esc(buf.join("\n"))}</code></pre><button class="copy" type="button">복사</button></div>`);
+        continue;
+      }
+      let m;
+      if ((m = line.match(/^(#{1,3})\s+(.*)$/))) {
+        flush();
+        const n = m[1].length, text = m[2];
+        const id = n === 2 ? "s" + out.length : "";
+        out.push(`<h${n}${id ? ` id="${id}"` : ""}>${inline(text)}</h${n}>`);
+        i++; continue;
+      }
+      if (/^\|/.test(line)) {
+        flush();
+        const rows = [];
+        for (; i < lines.length && /^\|/.test(lines[i]); i++) rows.push(lines[i]);
+        const cells = (r) => r.trim().replace(/^\||\|$/g, "").split("|").map((c) => c.trim());
+        const head = cells(rows[0]);
+        const body = rows.slice(1).filter((r) => !/^\|[\s:|-]+\|$/.test(r.trim()));
+        out.push(`<div class="tbl"><table><thead><tr>${head.map((c) => `<th>${inline(c)}</th>`).join("")}</tr></thead><tbody>` +
+          body.map((r) => `<tr>${cells(r).map((c) => `<td>${inline(c)}</td>`).join("")}</tr>`).join("") + "</tbody></table></div>");
+        continue;
+      }
+      if (/^>\s?/.test(line)) {
+        flush();
+        const buf = [];
+        for (; i < lines.length && /^>\s?/.test(lines[i]); i++) buf.push(`<p>${inline(lines[i].replace(/^>\s?/, ""))}</p>`);
+        out.push(`<blockquote>${buf.join("")}</blockquote>`);
+        continue;
+      }
+      if ((m = line.match(/^(\s*)([-*]|\d+\.)\s+/))) {
+        flush();
+        const ordered = /\d/.test(m[2]);
+        const buf = [];
+        for (; i < lines.length && /^\s*([-*]|\d+\.)\s+/.test(lines[i]); i++) buf.push(`<li>${inline(lines[i].replace(/^\s*([-*]|\d+\.)\s+/, ""))}</li>`);
+        out.push(ordered ? `<ol>${buf.join("")}</ol>` : `<ul>${buf.join("")}</ul>`);
+        continue;
+      }
+      if (/^---+\s*$/.test(line)) { flush(); out.push("<hr>"); i++; continue; }
+      if (!line.trim()) { flush(); i++; continue; }
+      para.push(line.trim());
+      i++;
+    }
+    flush();
+    return out.join("\n");
+  }
+
+  const toast = document.getElementById("toast");
+  let toastTimer;
+  function showToast(t) {
+    toast.textContent = t;
+    toast.classList.add("on");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove("on"), 1200);
+  }
+
+  async function copy(text) {
+    try { await navigator.clipboard.writeText(text); return true; } catch {
+      const ta = document.createElement("textarea");
+      ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+      document.body.append(ta); ta.select();
+      const ok = document.execCommand("copy");
+      ta.remove();
+      return ok;
+    }
+  }
+
+  document.addEventListener("click", async (e) => {
+    const btn = e.target.closest(".copy");
+    if (btn) {
+      const ok = await copy(btn.previousElementSibling.textContent);
+      btn.textContent = ok ? "복사됨" : "실패";
+      btn.classList.toggle("done", ok);
+      setTimeout(() => { btn.textContent = "복사"; btn.classList.remove("done"); }, 1500);
+      return;
+    }
+    const code = e.target.closest("td code");
+    if (code && await copy(code.textContent)) showToast("복사됨: " + code.textContent.slice(0, 30));
+  });
+
+  (async () => {
+    const src = source();
+    const doc = document.getElementById("doc");
+    try {
+      const res = await fetch(src.url, { cache: "no-cache" });
+      if (!res.ok) throw new Error(res.status);
+      doc.innerHTML = render(await res.text());
+    } catch {
+      doc.innerHTML = `<p>PROMPTS.md 를 불러오지 못했습니다. <a href="${src.link}">원본에서 보기</a></p>`;
+      return;
+    }
+    const h1 = doc.querySelector("h1");
+    if (h1) document.title = h1.textContent;
+    const toc = document.getElementById("toc");
+    for (const h of doc.querySelectorAll("h2[id]")) {
+      const li = document.createElement("li");
+      const a = document.createElement("a");
+      a.href = "#" + h.id;
+      a.textContent = h.textContent.replace(/\s+—.*$/, "");
+      li.append(a);
+      toc.append(li);
+    }
+  })();
+})();
+</script>
+</body>
+</html>

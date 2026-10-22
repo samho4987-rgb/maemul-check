@@ -1,4 +1,4 @@
-# Render Blueprint (세션 3 에서 배포). 레포 루트 기준 경로.
+# Render Blueprint — Render 는 레포 루트의 render.yaml 을 찾는다. 경로는 레포 루트 기준.
 services:
   - type: web
     name: maemul-check-api

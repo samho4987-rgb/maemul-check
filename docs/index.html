@@ -1,0 +1,818 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>매물검수</title>
+<meta name="description" content="광고에 적을 값과 건축물대장을 항목별로 대조해 누락·불일치를 게시 전에 잡아주는 무료 도구">
+<style>
+  :root {
+    --bg: #f6f7f9; --card: #fff; --text: #1b1f24; --muted: #667080; --line: #dde1e6;
+    --accent: #2457d6; --accent-weak: #e8eefc;
+    --green: #1a7f37; --green-bg: #e6f4ea; --yellow: #8a6100; --yellow-bg: #fff4d6;
+    --red: #c62828; --red-bg: #fdecea; --gray: #59636e; --gray-bg: #eceff2;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #111418; --card: #1a1e24; --text: #e6e9ed; --muted: #98a2ae; --line: #2c323a;
+      --accent: #6b95ff; --accent-weak: #1d2a47;
+      --green: #6fd08c; --green-bg: #15301e; --yellow: #f0c55a; --yellow-bg: #3a2f10;
+      --red: #ff8a80; --red-bg: #3d1a18; --gray: #aab3bd; --gray-bg: #2a2f36;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+    font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Malgun Gothic", sans-serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 20px 16px 48px; }
+  header h1 { font-size: 22px; margin: 0 0 4px; }
+  header p { margin: 0; color: var(--muted); font-size: 14px; }
+  header nav { margin-top: 6px; font-size: 13px; }
+  a { color: var(--accent); }
+
+  .steps { display: flex; gap: 6px; margin: 20px 0 14px; padding: 0; list-style: none; }
+  .steps li { flex: 1; padding: 8px 10px; border-radius: 8px; background: var(--card); border: 1px solid var(--line);
+    color: var(--muted); font-size: 13px; }
+  .steps li b { display: block; font-size: 14px; }
+  .steps li.on { border-color: var(--accent); background: var(--accent-weak); color: var(--text); }
+
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 18px; }
+  .card + .card { margin-top: 12px; }
+  .card h2 { font-size: 17px; margin: 0 0 12px; }
+  .card h3 { font-size: 14px; margin: 18px 0 8px; color: var(--muted); font-weight: 600; }
+  [hidden] { display: none !important; }
+
+  label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 4px; }
+  input, select { width: 100%; font: inherit; color: var(--text); background: var(--card);
+    border: 1px solid var(--line); border-radius: 8px; padding: 9px 10px; min-height: 40px; }
+  input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: transparent; }
+  .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .grid .full { grid-column: 1 / -1; }
+  @media (max-width: 520px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+  .row { display: flex; gap: 8px; align-items: center; }
+  .row > * { flex: 1; min-width: 0; }
+  .row > .shrink { flex: 0 0 auto; }
+  .hint { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .unit { position: relative; }
+  .unit input { padding-right: 44px; }
+  .unit span { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 13px; pointer-events: none; }
+
+  button { font: inherit; cursor: pointer; border-radius: 8px; padding: 10px 16px; min-height: 40px;
+    border: 1px solid var(--line); background: var(--card); color: var(--text); }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+  button:disabled { opacity: .55; cursor: default; }
+  .actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 18px; flex-wrap: wrap; }
+
+  .picked { padding: 10px 12px; border-radius: 8px; background: var(--accent-weak); margin-top: 10px; }
+  .picked b { display: block; }
+  .picked small { color: var(--muted); }
+  #postcode { height: 440px; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; margin-top: 10px; }
+
+  .msg { padding: 10px 12px; border-radius: 8px; font-size: 14px; margin-top: 12px; }
+  .msg.warn { background: var(--yellow-bg); color: var(--yellow); }
+  .msg.err { background: var(--red-bg); color: var(--red); }
+  .msg.info { background: var(--gray-bg); color: var(--gray); }
+
+  .verdict { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+  .badge { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 13px; font-weight: 600; white-space: nowrap; }
+  .verdict .badge { font-size: 17px; padding: 6px 14px; }
+  .g { background: var(--green-bg); color: var(--green); }
+  .y { background: var(--yellow-bg); color: var(--yellow); }
+  .r { background: var(--red-bg); color: var(--red); }
+  .x { background: var(--gray-bg); color: var(--gray); }
+  .counts { color: var(--muted); font-size: 13px; }
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; padding: 9px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; font-size: 13px; }
+  td.note { color: var(--muted); font-size: 13px; }
+  @media (max-width: 560px) {
+    table, tbody, tr, td { display: block; }
+    thead { display: none; }
+    tr { border-bottom: 1px solid var(--line); padding: 8px 0; }
+    td { border: 0; padding: 2px 0; }
+    td[data-k]::before { content: attr(data-k) " "; color: var(--muted); font-size: 12px; }
+  }
+  details { margin-top: 14px; font-size: 13px; }
+  details dl { display: grid; grid-template-columns: max-content 1fr; gap: 2px 12px; margin: 8px 0 0; }
+  details dt { color: var(--muted); }
+  details dd { margin: 0; }
+  .disclaimer { margin-top: 18px; font-size: 12px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 10px; }
+  footer { margin-top: 20px; font-size: 12px; color: var(--muted); text-align: center; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>매물검수</h1>
+    <p>광고에 적을 값과 건축물대장을 대조해 누락·불일치를 게시 전에 잡아줍니다.</p>
+    <nav><a href="prompts.html">이 도구를 직접 만드는 프롬프트 모음 →</a></nav>
+  </header>
+
+  <ol class="steps" id="steps">
+    <li data-step="1"><b>1. 주소</b>주소·동·호</li>
+    <li data-step="2"><b>2. 광고 내용</b>명시사항 14항목</li>
+    <li data-step="3"><b>3. 결과</b>대장 대조</li>
+  </ol>
+
+  <div id="server-status" class="msg info" hidden></div>
+
+  <!-- 1단계: 주소 -->
+  <section id="step1" class="card">
+    <h2>매물 주소</h2>
+    <div class="row">
+      <input id="addr-text" placeholder="지번 주소 (예: 부산 수영구 광안동 170-5)" autocomplete="off">
+      <button type="button" class="shrink" id="btn-search">주소 검색</button>
+    </div>
+    <div class="hint" id="addr-hint">검색 버튼으로 고르거나, 지번 주소를 직접 입력하세요.</div>
+    <div id="postcode" hidden></div>
+    <div class="picked" id="picked" hidden></div>
+
+    <div class="grid" style="margin-top:14px">
+      <div>
+        <label for="dong">동 <small>(여러 동 건물만)</small></label>
+        <input id="dong" placeholder="예: 101" autocomplete="off">
+        <select id="dong-select" hidden></select>
+      </div>
+      <div>
+        <label for="ho">호 <small>(아파트·오피스텔·빌라 등 집합건물)</small></label>
+        <input id="ho" placeholder="예: 301" autocomplete="off">
+      </div>
+    </div>
+    <div class="hint">호는 광고 명시사항이 아니라 대장에서 해당 호를 찾는 데만 씁니다.</div>
+    <div id="step1-msg" class="msg" hidden></div>
+    <div class="actions">
+      <button type="button" class="primary" id="btn-step1">다음</button>
+    </div>
+  </section>
+
+  <!-- 2단계: 광고 내용 -->
+  <form id="step2" class="card" hidden autocomplete="off">
+    <h2>광고에 적을 내용</h2>
+    <div class="hint" id="step2-addr"></div>
+
+    <h3>거래·가격</h3>
+    <div class="grid">
+      <div>
+        <label for="deal_type">거래형태</label>
+        <select id="deal_type" name="deal_type">
+          <option value="">선택</option><option>매매</option><option>전세</option><option>월세</option>
+        </select>
+      </div>
+      <div data-deal="매매">
+        <label for="price">매매가</label>
+        <div class="unit"><input id="price" name="price" inputmode="decimal" placeholder="예: 32000"><span>만원</span></div>
+      </div>
+      <div data-deal="전세 월세">
+        <label for="deposit">보증금</label>
+        <div class="unit"><input id="deposit" name="deposit" inputmode="decimal" placeholder="예: 500"><span>만원</span></div>
+      </div>
+      <div data-deal="월세">
+        <label for="rent">월세</label>
+        <div class="unit"><input id="rent" name="rent" inputmode="decimal" placeholder="예: 50"><span>만원</span></div>
+      </div>
+    </div>
+
+    <h3>매물 정보</h3>
+    <div class="grid">
+      <div>
+        <label for="kind">종류</label>
+        <select id="kind" name="kind">
+          <option value="">선택</option>
+          <option>아파트</option><option>오피스텔</option><option>빌라/연립</option><option>다세대</option>
+          <option>다가구/단독</option><option>원룸</option><option>상가/점포</option><option>사무실</option>
+        </select>
+      </div>
+      <div>
+        <label for="area_m2">전용면적</label>
+        <div class="unit"><input id="area_m2" name="area_m2" inputmode="decimal" placeholder="예: 29.75"><span>㎡</span></div>
+        <div class="hint" id="pyeong"></div>
+      </div>
+      <div>
+        <label for="floor">해당층</label>
+        <input id="floor" name="floor" placeholder="예: 3 / 지하1 / 저·중·고">
+      </div>
+      <div>
+        <label for="floors_total">총층수 (지상)</label>
+        <div class="unit"><input id="floors_total" name="floors_total" inputmode="numeric" placeholder="예: 15"><span>층</span></div>
+      </div>
+      <div>
+        <label for="rooms">방 수</label>
+        <input id="rooms" name="rooms" inputmode="numeric" placeholder="예: 1">
+      </div>
+      <div>
+        <label for="baths">욕실 수</label>
+        <input id="baths" name="baths" inputmode="numeric" placeholder="예: 1">
+      </div>
+      <div>
+        <label for="direction">방향</label>
+        <select id="direction" name="direction">
+          <option value="">선택</option>
+          <option>동향</option><option>서향</option><option>남향</option><option>북향</option>
+          <option>남동향</option><option>남서향</option><option>북동향</option><option>북서향</option>
+        </select>
+      </div>
+      <div>
+        <label for="direction_basis">방향 기준</label>
+        <select id="direction_basis" name="direction_basis">
+          <option value="">선택</option>
+          <option value="주실">주실 (거실·안방) — 주거용</option>
+          <option value="주출입구">주출입구 — 비주거용</option>
+        </select>
+      </div>
+      <div>
+        <label for="move_in_mode">입주가능일</label>
+        <select id="move_in_mode">
+          <option value="">선택</option>
+          <option value="즉시">즉시입주</option>
+          <option value="date">날짜 지정</option>
+          <option value="period">○월 초·중·하순</option>
+        </select>
+      </div>
+      <div id="move_in_date_wrap" hidden>
+        <label for="move_in_date">날짜</label>
+        <input id="move_in_date" type="date">
+      </div>
+      <div id="move_in_period_wrap" hidden>
+        <label for="move_in_month">월 · 시기</label>
+        <div class="row">
+          <select id="move_in_month"></select>
+          <select id="move_in_period"><option>초순</option><option>중순</option><option>하순</option></select>
+        </div>
+      </div>
+      <div>
+        <label for="maint_fee">관리비 (월)</label>
+        <div class="unit"><input id="maint_fee" name="maint_fee" inputmode="decimal" placeholder="예: 7"><span>만원</span></div>
+        <div class="hint">10만원 이상이면 비목별 금액도 표시해야 합니다.</div>
+      </div>
+    </div>
+
+    <h3>건물 정보</h3>
+    <div class="grid">
+      <div>
+        <label for="parking">주차대수</label>
+        <div class="row">
+          <input id="parking" name="parking" inputmode="decimal" placeholder="예: 1">
+          <select id="parking_unit" name="parking_unit" class="shrink" style="width:auto">
+            <option value="">단위</option><option value="총">총</option><option value="세대당">세대당</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <label for="elevator">승강기</label>
+        <select id="elevator" name="elevator">
+          <option value="">선택</option><option value="true">있음</option><option value="false">없음</option>
+        </select>
+      </div>
+      <div>
+        <label for="approval_date">사용승인일</label>
+        <input id="approval_date" name="approval_date" placeholder="예: 2018-03 또는 2018-03-15">
+      </div>
+    </div>
+
+    <h3>중개사무소 <small style="font-weight:400">(이 브라우저에 저장됩니다)</small></h3>
+    <div class="grid">
+      <div><label for="office_name">명칭</label><input id="office_name" data-office="name"></div>
+      <div><label for="office_rep">대표자</label><input id="office_rep" data-office="rep"></div>
+      <div class="full"><label for="office_addr">소재지</label><input id="office_addr" data-office="addr"></div>
+      <div><label for="office_reg_no">등록번호</label><input id="office_reg_no" data-office="reg_no"></div>
+      <div><label for="office_tel">연락처</label><input id="office_tel" data-office="tel" inputmode="tel"></div>
+    </div>
+
+    <div id="step2-msg" class="msg" hidden></div>
+    <div class="actions">
+      <button type="button" id="btn-back1">이전</button>
+      <button type="submit" class="primary" id="btn-verify">검수하기</button>
+    </div>
+  </form>
+
+  <!-- 3단계: 결과 -->
+  <section id="step3" class="card" hidden>
+    <h2>검수 결과</h2>
+    <div class="verdict">
+      <span class="badge" id="verdict-badge"></span>
+      <span class="counts" id="verdict-counts"></span>
+    </div>
+    <div class="hint" id="result-addr" style="margin:-6px 0 12px"></div>
+    <div id="result-msg" class="msg warn" hidden></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>검사항목</th><th>광고값</th><th>대장값</th><th>판정</th><th>비고</th></tr></thead>
+        <tbody id="result-rows"></tbody>
+      </table>
+    </div>
+    <details id="snapshot" hidden>
+      <summary>건축물대장 요약</summary>
+      <dl id="snapshot-list"></dl>
+    </details>
+    <div class="actions">
+      <span class="counts" id="quota" style="margin-right:auto;align-self:center"></span>
+      <button type="button" id="btn-edit">광고 내용 수정</button>
+      <button type="button" id="btn-copy">결과 복사</button>
+      <button type="button" class="primary" id="btn-restart">다시 검수</button>
+    </div>
+    <p class="disclaimer">※ 참고 자료이며 광고 등록 및 법적 판단 책임은 이용자에게 있습니다.
+      근거: 공인중개사법 제18조의2, 국토교통부 고시 「중개대상물의 표시·광고 명시사항 세부기준」 제2024-748호.</p>
+  </section>
+
+  <footer>
+    ※ 참고 자료이며 광고 등록 및 법적 판단 책임은 이용자에게 있습니다. · 오늘 검수 한도 10건 ·
+    <a href="https://github.com/samho4987-rgb/maemul-check">소스 (MIT)</a>
+  </footer>
+</main>
+
+<script src="config.js"></script>
+<script>
+(() => {
+  "use strict";
+  const CFG = window.MAEMUL_CONFIG || {};
+  const API = (CFG.API_BASE || "http://localhost:8000").replace(/\/+$/, "");
+  const $ = (id) => document.getElementById(id);
+  const OFFICE_KEY = "maemul.office";
+  const TOKEN_KEY = "maemul.client_token";
+
+  const store = {
+    get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch { /* 사파리 사생활 보호 등 */ } },
+  };
+
+  function clientToken() {
+    let t = store.get(TOKEN_KEY);
+    if (!t) {
+      t = crypto.randomUUID ? crypto.randomUUID()
+        : Array.from(crypto.getRandomValues(new Uint8Array(16)), (b) => b.toString(16).padStart(2, "0")).join("");
+      store.set(TOKEN_KEY, t);
+    }
+    return t;
+  }
+
+  // ── 상태 ────────────────────────────────────────────────
+  const state = {
+    address: null,     // { region, jibun, label }
+    candidates: [],    // 422 dong_required 의 동 목록
+    lastResult: null,
+    serverAwake: false,
+  };
+
+  function showStep(n) {
+    for (const i of [1, 2, 3]) $("step" + i).hidden = i !== n;
+    for (const li of $("steps").children) li.classList.toggle("on", Number(li.dataset.step) === n);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function msg(el, text, kind = "err") {
+    el.hidden = !text;
+    el.className = "msg " + kind;
+    el.textContent = text || "";
+  }
+
+  // ── 서버 워밍업 (Render 무료 플랜 콜드스타트) ───────────
+  const status = $("server-status");
+  function waking(on) {
+    if (on && !state.serverAwake) {
+      status.hidden = false;
+      status.textContent = "서버 깨우는 중… (무료 서버라 처음엔 최대 60초 걸립니다)";
+    } else {
+      status.hidden = true;
+    }
+  }
+
+  async function fetchWithTimeout(url, opts = {}, ms = 75000) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), ms);
+    try { return await fetch(url, { ...opts, signal: ctrl.signal }); }
+    finally { clearTimeout(timer); }
+  }
+
+  async function ping() {
+    const slow = setTimeout(() => waking(true), 1500);
+    try {
+      const res = await fetchWithTimeout(API + "/api/ping");
+      if (res.ok) state.serverAwake = true;
+    } catch {
+      status.hidden = false;
+      status.className = "msg err";
+      status.textContent = `API 서버(${API})에 연결할 수 없습니다. docs/config.js 의 API_BASE 를 확인하세요.`;
+      clearTimeout(slow);
+      return;
+    }
+    clearTimeout(slow);
+    waking(false);
+  }
+
+  // ── 1단계: 주소 ─────────────────────────────────────────
+  function splitJibun(text) {
+    // "부산 수영구 광안동 170-5" → region / jibun. 서버(regions.parse_address)와 같은 규칙: 지번은 마지막 토큰
+    const t = text.trim().replace(/\s*번지$/, "").split(/\s+/);
+    if (t.length < 2) return null;
+    let jibun = t.pop();
+    if (t.length >= 2 && t[t.length - 1] === "산") jibun = "산" + jibun, t.pop();
+    if (!/^산?\d+(-\d+)?$/.test(jibun)) return null;
+    return { region: t.join(" "), jibun };
+  }
+
+  function setAddress(jibunAddr, extra = "") {
+    const parts = splitJibun(jibunAddr);
+    if (!parts) return false;
+    if (!state.address || state.address.label !== jibunAddr) resetDong();
+    state.address = { ...parts, label: jibunAddr };
+    $("addr-text").value = jibunAddr;
+    const p = $("picked");
+    p.hidden = false;
+    p.innerHTML = "";
+    const b = document.createElement("b");
+    b.textContent = jibunAddr;
+    p.append(b);
+    if (extra) {
+      const s = document.createElement("small");
+      s.textContent = extra;
+      p.append(s);
+    }
+    return true;
+  }
+
+  function resetDong() {
+    state.candidates = [];
+    $("dong-select").hidden = true;
+    $("dong").hidden = false;
+  }
+
+  // 카카오(다음) 우편번호 서비스 — 키 불필요
+  let postcodeLoading = null;
+  function loadScript(src) {
+    return new Promise((ok, fail) => {
+      const s = document.createElement("script");
+      s.src = src; s.onload = ok; s.onerror = fail;
+      document.head.append(s);
+    });
+  }
+  function loadPostcode() {
+    postcodeLoading ||= loadScript("https://t1.kakaocdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js")
+      .catch(() => loadScript("https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"));
+    return postcodeLoading;
+  }
+
+  $("btn-search").addEventListener("click", async () => {
+    const box = $("postcode");
+    if (!box.hidden) { box.hidden = true; return; }
+    try { await loadPostcode(); } catch {
+      msg($("step1-msg"), "주소검색을 불러오지 못했습니다. 지번 주소를 직접 입력하세요.");
+      return;
+    }
+    const Postcode = (window.kakao && window.kakao.Postcode) || window.daum.Postcode;
+    box.hidden = false;
+    box.innerHTML = "";
+    new Postcode({
+      width: "100%", height: "100%",
+      oncomplete(d) {
+        const jibun = d.jibunAddress || d.autoJibunAddress;
+        const extra = [d.roadAddress, d.buildingName].filter(Boolean).join(" · ");
+        box.hidden = true;
+        if (!jibun || !setAddress(jibun, extra)) {
+          msg($("step1-msg"), "이 주소의 지번을 찾지 못했습니다. 지번 주소를 직접 입력하세요.");
+          return;
+        }
+        msg($("step1-msg"), d.apartment === "Y" ? "공동주택입니다. 호를 입력하세요." : "", "info");
+        (d.apartment === "Y" ? $("ho") : $("btn-step1")).focus();
+      },
+    }).embed(box, { q: $("addr-text").value.trim(), autoClose: true });
+  });
+
+  // 직접 입력: 지번이면 그대로, 아니면 KAKAO_JS_KEY 가 있을 때 지오코더로 지번 변환
+  let geocoderLoading = null;
+  function loadGeocoder() {
+    if (!CFG.KAKAO_JS_KEY) return Promise.reject(new Error("no key"));
+    geocoderLoading ||= loadScript(`https://dapi.kakao.com/v2/maps/sdk.js?appkey=${encodeURIComponent(CFG.KAKAO_JS_KEY)}&libraries=services&autoload=false`)
+      .then(() => new Promise((ok) => window.kakao.maps.load(ok)));
+    return geocoderLoading;
+  }
+  async function toJibun(text) {
+    if (splitJibun(text)) return text;
+    try { await loadGeocoder(); } catch { return null; }
+    return new Promise((ok) => {
+      new window.kakao.maps.services.Geocoder().addressSearch(text, (res, st) => {
+        ok(st === window.kakao.maps.services.Status.OK && res[0] && res[0].address ? res[0].address.address_name : null);
+      });
+    });
+  }
+
+  $("btn-step1").addEventListener("click", async () => {
+    const text = $("addr-text").value.trim();
+    if (!state.address || state.address.label !== text) {
+      const jibun = text && await toJibun(text);
+      if (!jibun || !setAddress(jibun)) {
+        msg($("step1-msg"), CFG.KAKAO_JS_KEY
+          ? "주소를 찾지 못했습니다. 주소 검색 버튼을 쓰거나 지번 주소로 입력하세요."
+          : "지번 주소로 입력하세요 (예: 부산 수영구 광안동 170-5). 도로명은 주소 검색 버튼을 쓰세요.");
+        return;
+      }
+    }
+    msg($("step1-msg"), "");
+    // 동·호 보완 후 다시 온 경우(422)엔 바로 재검수
+    if (state.retryAfterAddress) { state.retryAfterAddress = false; return runVerify(); }
+    showStep(2);
+    $("step2-addr").textContent = addressLine();
+  });
+  $("addr-text").addEventListener("keydown", (e) => { if (e.key === "Enter") $("btn-step1").click(); });
+
+  function currentDong() {
+    return ($("dong-select").hidden ? $("dong").value : $("dong-select").value).trim() || null;
+  }
+  function addressLine() {
+    const a = state.address;
+    if (!a) return "";
+    const dong = currentDong(), ho = $("ho").value.trim();
+    return [a.label, dong && dong + (/동$/.test(dong) ? "" : "동"), ho && ho + (/호$/.test(ho) ? "" : "호")].filter(Boolean).join(" ");
+  }
+
+  // ── 2단계: 광고 내용 ────────────────────────────────────
+  const form = $("step2");
+
+  function syncDeal() {
+    const v = $("deal_type").value;
+    for (const el of form.querySelectorAll("[data-deal]")) el.hidden = !!v && !el.dataset.deal.split(" ").includes(v);
+  }
+  $("deal_type").addEventListener("change", syncDeal);
+  syncDeal();
+
+  $("area_m2").addEventListener("input", () => {
+    const n = parseFloat($("area_m2").value);
+    $("pyeong").textContent = n > 0 ? `≈ ${(n / 3.305785).toFixed(1)}평` : "";
+  });
+
+  (() => {
+    const m = $("move_in_month"), now = new Date();
+    for (let i = 0; i < 12; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+      const o = document.createElement("option");
+      o.value = `${d.getMonth() + 1}월`;
+      o.textContent = i < 12 - now.getMonth() ? `${d.getMonth() + 1}월` : `${d.getFullYear()}년 ${d.getMonth() + 1}월`;
+      m.append(o);
+    }
+  })();
+  $("move_in_mode").addEventListener("change", () => {
+    const v = $("move_in_mode").value;
+    $("move_in_date_wrap").hidden = v !== "date";
+    $("move_in_period_wrap").hidden = v !== "period";
+  });
+
+  // 중개사무소: localStorage (재입력 방지)
+  const officeInputs = form.querySelectorAll("[data-office]");
+  try {
+    const saved = JSON.parse(store.get(OFFICE_KEY) || "{}");
+    for (const el of officeInputs) el.value = saved[el.dataset.office] || "";
+  } catch { /* 깨진 값은 무시 */ }
+  function saveOffice() {
+    const o = {};
+    for (const el of officeInputs) o[el.dataset.office] = el.value.trim();
+    store.set(OFFICE_KEY, JSON.stringify(o));
+    return o;
+  }
+  for (const el of officeInputs) el.addEventListener("change", saveOffice);
+
+  const num = (id) => {
+    const s = $(id).value.replace(/[,\s]/g, "");
+    if (s === "") return null;
+    const n = Number(s);
+    return Number.isFinite(n) ? n : s;   // 숫자가 아니면 그대로 보내 서버가 판정
+  };
+  const int = (id) => { const n = num(id); return typeof n === "number" ? Math.round(n) : n; };
+  const won = (id) => { const n = num(id); return typeof n === "number" ? Math.round(n * 10000) : n; };
+  const str = (id) => $(id).value.trim() || null;
+
+  function moveIn() {
+    switch ($("move_in_mode").value) {
+      case "즉시": return "즉시";
+      case "date": return $("move_in_date").value || null;
+      case "period": return $("move_in_month").value + " " + $("move_in_period").value;
+      default: return null;
+    }
+  }
+
+  function collectAd() {
+    const deal = str("deal_type");
+    const floor = str("floor");
+    const el = $("elevator").value;
+    return {
+      kind: str("kind"),
+      area_m2: num("area_m2"),
+      deal_type: deal,
+      price: deal === "매매" ? won("price") : null,
+      deposit: deal === "전세" || deal === "월세" ? won("deposit") : null,
+      rent: deal === "월세" ? won("rent") : null,
+      floor: floor && /^-?\d+$/.test(floor) ? Number(floor) : floor,
+      floors_total: int("floors_total"),
+      approval_date: str("approval_date"),
+      direction: str("direction"),
+      direction_basis: str("direction_basis"),
+      rooms: int("rooms"),
+      baths: int("baths"),
+      move_in: moveIn(),
+      maint_fee: won("maint_fee"),
+      parking: num("parking"),
+      parking_unit: str("parking_unit"),
+      elevator: el === "" ? null : el === "true",
+      office: saveOffice(),
+    };
+  }
+
+  $("btn-back1").addEventListener("click", () => showStep(1));
+  form.addEventListener("submit", (e) => { e.preventDefault(); runVerify(); });
+
+  // ── 검수 호출 ───────────────────────────────────────────
+  let busy = false;
+  async function runVerify() {
+    if (busy || !state.address) return;
+    busy = true;
+    const btns = [$("btn-verify"), $("btn-step1")];
+    btns.forEach((b) => (b.disabled = true));
+    $("btn-verify").textContent = "검수 중…";
+    msg($("step2-msg"), "");
+    const slow = setTimeout(() => waking(true), 2500);
+
+    const body = {
+      address: { region: state.address.region, jibun: state.address.jibun, dong: currentDong(), ho: $("ho").value.trim() || null },
+      ad: collectAd(),
+      client_token: clientToken(),
+    };
+    let res, data;
+    try {
+      res = await fetchWithTimeout(API + "/api/verify", {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+      });
+      data = await res.json().catch(() => ({}));
+      state.serverAwake = true;
+    } catch (err) {
+      res = null;
+    } finally {
+      clearTimeout(slow);
+      waking(false);
+      busy = false;
+      btns.forEach((b) => (b.disabled = false));
+      $("btn-verify").textContent = "검수하기";
+    }
+
+    const errBox = $("step2").hidden ? $("step1-msg") : $("step2-msg");
+    if (!res) return msg(errBox, `서버에 연결하지 못했습니다 (${API}). 잠시 후 다시 시도하세요.`);
+    if (res.ok) return showResult(data, body);
+
+    switch (res.status) {
+      case 422: return needDongHo(data);
+      case 429: {
+        const q = data.quota || {};
+        return msg(errBox, `오늘 검수 한도(${q.limit ?? 10}건)를 다 썼습니다. 내일 다시 이용하세요.`);
+      }
+      case 502: return msg(errBox, "건축물대장 서버에 연결하지 못했습니다. 잠시 후 다시 시도하세요." + (data.message ? ` (${data.message})` : ""));
+      case 400:
+        if (data.error === "bad_address") {
+          showStep(1);
+          return msg($("step1-msg"), "주소를 해석하지 못했습니다: " + (data.message || ""));
+        }
+        return msg(errBox, "입력 오류: " + (data.message || data.error || ""));
+      default: return msg(errBox, `오류 (${res.status}) ${data.message || data.error || ""}`);
+    }
+  }
+
+  // 422: 동·호 선택 필요 → 1단계로 돌아가 보완 후 바로 재검수 (한도 차감 없음)
+  function needDongHo(data) {
+    showStep(1);
+    state.retryAfterAddress = true;
+    $("btn-step1").textContent = "이 주소로 다시 검수";
+    const c = data.candidates || [];
+    if (data.error === "dong_required" && c.length) {
+      state.candidates = c;
+      const sel = $("dong-select");
+      sel.innerHTML = '<option value="">동 선택</option>' + c.map((d) => `<option></option>`).join("");
+      c.forEach((d, i) => { sel.options[i + 1].value = d; sel.options[i + 1].textContent = d; });
+      sel.hidden = false;
+      $("dong").hidden = true;
+      sel.focus();
+      return msg($("step1-msg"), `동이 여러 개인 건물입니다. 동을 고르세요. ${data.message || ""}`, "warn");
+    }
+    if (data.error === "ho_required") {
+      $("ho").focus();
+      return msg($("step1-msg"), "집합건물입니다. 호를 입력하세요.", "warn");
+    }
+    if (data.error === "ho_not_found") {
+      $("ho").focus();
+      return msg($("step1-msg"), `${data.message || "호가 대장에 없습니다."} 호를 확인하세요 (예: 301, 지하층은 B01 등 대장 표기).`, "warn");
+    }
+    msg($("step1-msg"), data.message || "동·호를 확인하세요.", "warn");
+  }
+
+  // ── 3단계: 결과 ─────────────────────────────────────────
+  const TONE = { 일치: "g", 기재: "g", 확인필요: "y", 불일치: "r", 누락: "r", 조회불가: "x" };
+  const VERDICT_TONE = { "게시 가능": "g", "확인 권장": "y", "수정 필요": "r" };
+
+  function cell(tr, text, label, cls) {
+    const td = document.createElement("td");
+    td.textContent = text ?? "—";
+    if (label) td.dataset.k = label;
+    if (cls) td.className = cls;
+    tr.append(td);
+    return td;
+  }
+
+  function showResult(data, body) {
+    state.lastResult = { data, addr: addressLine() };
+    $("btn-step1").textContent = "다음";
+    state.retryAfterAddress = false;
+
+    const badge = $("verdict-badge");
+    badge.textContent = data.verdict;
+    badge.className = "badge " + (VERDICT_TONE[data.verdict] || "x");
+    const n = { g: 0, y: 0, r: 0, x: 0 };
+    for (const it of data.items) n[TONE[it.status] || "x"]++;
+    $("verdict-counts").textContent = `문제 없음 ${n.g} · 확인필요 ${n.y} · 수정 필수 ${n.r}` + (n.x ? ` · 조회불가 ${n.x}` : "");
+    $("result-addr").textContent = state.lastResult.addr;
+
+    msg($("result-msg"), data.register_error === "register_not_found"
+      ? "건축물대장을 찾지 못했습니다(신축·멸실·지번 오류 가능). 대장 비교 항목은 조회불가, 누락 항목만 판정했습니다." : "", "warn");
+
+    const tbody = $("result-rows");
+    tbody.innerHTML = "";
+    for (const it of data.items) {
+      const tr = document.createElement("tr");
+      const th = cell(tr, it.label);
+      th.style.fontWeight = "600";
+      cell(tr, it.ad, "광고");
+      cell(tr, it.register, "대장");
+      const td = document.createElement("td");
+      const b = document.createElement("span");
+      b.className = "badge " + (TONE[it.status] || "x");
+      b.textContent = it.status;
+      td.append(b);
+      tr.append(td);
+      if (it.note) cell(tr, it.note, "", "note"); else cell(tr, "", "", "note");
+      tbody.append(tr);
+    }
+
+    const snap = data.register_snapshot;
+    $("snapshot").hidden = !snap;
+    if (snap) {
+      const dl = $("snapshot-list");
+      dl.innerHTML = "";
+      for (const [k, v] of Object.entries(snap)) {
+        if (v === null || v === "") continue;
+        const dt = document.createElement("dt"); dt.textContent = k.replace(/_/g, " ");
+        const dd = document.createElement("dd"); dd.textContent = v;
+        dl.append(dt, dd);
+      }
+    }
+
+    const q = data.quota;
+    $("quota").textContent = q ? `오늘 ${q.used}/${q.limit}건 사용` : "";
+    showStep(3);
+  }
+
+  function resultText() {
+    const { data, addr } = state.lastResult;
+    const lines = [`[매물검수] ${data.verdict}`, addr, ""];
+    for (const it of data.items) {
+      const vals = [it.ad && `광고 ${it.ad}`, it.register && `대장 ${it.register}`].filter(Boolean).join(" / ");
+      lines.push(`- ${it.label}: ${it.status}${vals ? ` (${vals})` : ""}${it.note ? ` — ${it.note}` : ""}`);
+    }
+    lines.push("", "※ 참고 자료이며 광고 등록 및 법적 판단 책임은 이용자에게 있습니다.");
+    return lines.join("\n");
+  }
+
+  async function copyText(text) {
+    try { await navigator.clipboard.writeText(text); return true; } catch {
+      const ta = document.createElement("textarea");
+      ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+      document.body.append(ta); ta.select();
+      const ok = document.execCommand("copy");
+      ta.remove();
+      return ok;
+    }
+  }
+
+  $("btn-copy").addEventListener("click", async () => {
+    const ok = await copyText(resultText());
+    const b = $("btn-copy");
+    b.textContent = ok ? "복사됨" : "복사 실패";
+    setTimeout(() => (b.textContent = "결과 복사"), 1500);
+  });
+  $("btn-edit").addEventListener("click", () => showStep(2));
+  $("btn-restart").addEventListener("click", () => {
+    // 중개사무소 정보만 남기고 초기화
+    const office = saveOffice();
+    form.reset();
+    for (const el of officeInputs) el.value = office[el.dataset.office] || "";
+    syncDeal();
+    $("pyeong").textContent = "";
+    $("move_in_date_wrap").hidden = $("move_in_period_wrap").hidden = true;
+    state.address = null;
+    resetDong();
+    $("addr-text").value = $("dong").value = $("ho").value = "";
+    $("picked").hidden = true;
+    msg($("step1-msg"), "");
+    showStep(1);
+    $("addr-text").focus();
+  });
+
+  showStep(1);
+  ping();
+})();
+</script>
+</body>
+</html>
