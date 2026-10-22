@@ -79,6 +79,11 @@ pytest 돌려
 
 ## 3편 — 웹 화면 + 배포
 
+**GitHub에 올리기** (0편에서 `gh` CLI 설치·로그인이 돼 있어야 한다)
+```
+GitHub에 내 계정으로 maemul-check 공개 레포를 만들고 origin으로 연결해서 main 브랜치 push해. 공개 레포니까 .env가 안 올라가는지 먼저 확인해.
+```
+
 **시작**
 ```
 매물검수_설계문서.md 읽고 8절 세션 3 진행. README 하단 핸드오프부터 읽어. 6절 3단계 화면을 web/index.html 단일 파일로, 7절대로 GitHub Pages + Render 배포 준비까지. 배포 자체는 내가 한다.
