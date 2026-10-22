@@ -12,7 +12,8 @@ requires-python = ">=3.11"
 dependencies = ["requests>=2.31"]
 
 [project.optional-dependencies]
-dev = ["pytest>=8"]
+server = ["flask>=3.0", "flask-cors>=4.0", "gunicorn>=22.0"]
+dev = ["pytest>=8", "flask>=3.0", "flask-cors>=4.0"]
 
 [tool.setuptools.packages.find]
 include = ["maemul_check*"]
@@ -23,3 +24,4 @@ include = ["maemul_check*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["."]

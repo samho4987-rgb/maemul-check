@@ -4,7 +4,7 @@ from .area import compare_area
 from .date import compare_approval
 from .floors import compare_floors
 from .parking import compare_parking
-from .purpose import compare_kind
+from .purpose import compare_kind, resolve_kind
 
 __all__ = [
     "compare_address",
@@ -13,4 +13,5 @@ __all__ = [
     "compare_floors",
     "compare_kind",
     "compare_parking",
+    "resolve_kind",
 ]

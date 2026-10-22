@@ -6,8 +6,11 @@
     "월세": {"deposit": "보증금", "rent": "월세"}
   },
   "directions": ["동", "서", "남", "북", "남동", "남서", "북동", "북서", "동남", "서남", "동북", "서북"],
-  "move_in_words": ["즉시", "협의"],
+  "direction_bases": ["주실", "거실", "안방", "주출입구", "출입구"],
+  "move_in_words": ["즉시"],
+  "move_in_periods": ["초순", "중순", "하순"],
   "maint_fee_detail_threshold": 100000,
+  "maint_fee_optional_kinds": ["상가/점포", "사무실"],
   "office_fields": {
     "name": "명칭",
     "addr": "소재지",

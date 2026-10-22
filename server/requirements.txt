@@ -1,0 +1,5 @@
+# 레포 루트에서: pip install -r server/requirements.txt
+.
+flask>=3.0
+flask-cors>=4.0
+gunicorn>=22.0

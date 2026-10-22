@@ -1,0 +1,18 @@
+# Render Blueprint (세션 3 에서 배포). 레포 루트 기준 경로.
+services:
+  - type: web
+    name: maemul-check-api
+    runtime: python
+    plan: free
+    buildCommand: pip install -r server/requirements.txt
+    startCommand: gunicorn server.app:app --bind 0.0.0.0:$PORT --workers 1
+    healthCheckPath: /api/ping
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.7"
+      - key: DATA_GO_KR_API_KEY
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false
+      - key: QUOTA_LIMIT
+        value: "10"

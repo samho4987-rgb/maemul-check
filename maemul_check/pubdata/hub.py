@@ -114,6 +114,14 @@ def _date(v: Any) -> str | None:
     return f"{s[:4]}-{s[4:6]}-{s[6:8]}" if len(s) == 8 else None
 
 
+def _floor(item: dict) -> int | None:
+    """전유부 flrNo → 지하는 음수."""
+    n = _int(item.get("flrNo"))
+    if n is not None and n > 0 and "지하" in (_str(item.get("flrGbCdNm")) or ""):
+        return -n
+    return n
+
+
 def _purpose(item: dict) -> str | None:
     """용도는 etcPurps 우선, 없으면 mainPurpsCdNm."""
     return _str(item.get("etcPurps")) or _str(item.get("mainPurpsCdNm"))
@@ -206,6 +214,7 @@ def build_register(title: dict, unit_rows: list[dict] | None = None, note: str =
         "대지위치": _str(title.get("platPlc")),
         "동명칭": _str(unit.get("dongNm")) or _str(title.get("dongNm")),
         "호명칭": _str(unit.get("hoNm")),
+        "해당층": _floor(unit) if unit else None,
     }
 
 

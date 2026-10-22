@@ -51,6 +51,7 @@ def test_collective_unit_register():
     assert reg["승강기"] == 2
     assert reg["사용승인일"] == "2018-03-15"
     assert reg["호명칭"] == "301호"
+    assert reg["해당층"] == 3   # 전유 행의 flrNo
     assert "주건축물" in reg["표제부_비고"]
     assert get.calls[1][1]["hoNm"] == "301"
     assert get.calls[0][1]["serviceKey"] == KEY
@@ -108,3 +109,8 @@ def test_parse_address():
     assert (a.region.sigungu_cd, a.region.bjdong_cd, a.bun, a.ji, a.plat_gb_cd) == ("26500", "10400", "0170", "0005", "0")
     assert a.jibun == "170-5"
     assert regions.parse_address("부산 수영구 광안동 산 12").plat_gb_cd == "1"
+
+
+def test_floor_basement_from_flr_gb():
+    rows = [{"hoNm": "B01", "flrNo": 1, "flrGbCdNm": "지하", "exposPubuseGbCdNm": "전유", "area": "20"}]
+    assert hub.build_register({}, rows)["해당층"] == -1

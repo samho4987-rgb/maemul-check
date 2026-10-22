@@ -42,18 +42,21 @@ class Office:
 @dataclass
 class AdInput:
     """광고에 적을 명시사항 14항목."""
-    address: Address = field(default_factory=Address)  # 1 소재지
+    address: Address = field(default_factory=Address)  # 1 소재지 (지번·동. 호는 대장 조회용)
+    floor: int | str | None = None                     #   해당층 3 / "지하1" / "저"·"중"·"고"
     area_m2: float | None = None                       # 2 전용면적
     kind: str | None = None                            # 3 종류
     floors_total: int | None = None                    # 4 총층수
     approval_date: str | None = None                   # 5 사용승인일 "YYYY-MM" 또는 "YYYY-MM-DD"
-    parking: int | None = None                         # 6 주차대수
+    parking: float | None = None                       # 6 주차대수
+    parking_unit: str | None = None                    #   "총" 또는 "세대당"
     elevator: bool | None = None                       # 7 승강기
     price: int | None = None                           # 8 가격(매매가)
     deposit: int | None = None                         #   보증금(전세·월세)
     rent: int | None = None                            #   월세
     deal_type: str | None = None                       # 9 거래형태
-    direction: str | None = None                       # 10 방향
+    direction: str | None = None                       # 10 방향 (8방위)
+    direction_basis: str | None = None                 #    기준 "주실"(거실·안방) / "주출입구"
     rooms: int | None = None                           # 11 방 수
     baths: int | None = None                           #    욕실 수
     move_in: str | None = None                         # 12 입주가능일
