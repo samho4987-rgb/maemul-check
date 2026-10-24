@@ -139,9 +139,13 @@ GitHub에 내 계정으로 maemul-check 공개 레포를 만들고 origin으로 
 ```
 
 **③ Render 배포** — 브라우저에서 (Claude Code 아님)
-1. render.com → Dashboard → **New → Blueprint** → `maemul-check` 레포 선택 → Apply
-2. 생성된 서비스 → **Environment** → 추가: `DATA_GO_KR_API_KEY` = (자기 키), `CORS_ORIGINS` = `https://<GitHub계정>.github.io`
-3. 배포 끝나면 서비스 주소 복사 (예: `https://maemul-check-api.onrender.com`) → 브라우저에서 `/api/ping` 열어 응답 확인
+1. render.com → **New → Blueprint** → `maemul-check` 레포 → Connect
+   (처음이면 GitHub 연결 허용 화면이 먼저 뜬다 → "Only select repositories" → `maemul-check` 선택 → Install. 레포가 목록에 없으면 3편 ② push가 안 된 것)
+2. "You are deploying from a Blueprint" 화면에서 세 칸 입력 → **Deploy Blueprint**
+   - Blueprint Name: `maemul-check`
+   - `DATA_GO_KR_API_KEY`: 공공데이터 **Decoding** 키
+   - `CORS_ORIGINS`: `https://<GitHub계정>.github.io` (끝에 `/` 없이)
+3. 배포가 "Live"가 되면 서비스 페이지 **맨 위, 서비스 이름 바로 아래**에 주소가 있다 (예: `https://maemul-check-api-ab12.onrender.com`, 뒷부분은 사람마다 다름). 옆의 복사 아이콘으로 복사 → 브라우저 주소창에 `그 주소/api/ping` 입력해 `ok` 응답 확인
 
 **④ 설정값 넣기**
 ```
