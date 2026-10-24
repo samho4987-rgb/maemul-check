@@ -157,7 +157,8 @@ docs/config.js에 API_BASE를 (Render 주소)로, KAKAO_JS_KEY를 (카카오 JS 
 2. 1~2분 뒤 `https://<GitHub계정>.github.io/maemul-check/` 열림
 
 **⑥ 카카오 도메인 등록** — 브라우저에서
-developers.kakao.com → 내 앱 → **플랫폼 → Web → 사이트 도메인**에 `https://<GitHub계정>.github.io` 추가
+developers.kakao.com → 내 앱 → 앱 설정 **플랫폼 키** → JavaScript 키 카드 아래 **「JS SDK 도메인」** 클릭 → `https://<GitHub계정>.github.io` 추가 → 저장
+(⚠️ 이 화면에 REST API 키·네이티브 앱 키도 보인다. 녹화·캡처에 노출 금지. JS 키만 공개해도 되는 키)
 
 **⑦ 실제 검수 1건**
 ```

@@ -1,5 +1,8 @@
 # 매물검수 (maemul-check)
 
+**바로 쓰기: https://samho4987-rgb.github.io/maemul-check/**
+(API: `https://maemul-check-api.onrender.com` · 프롬프트 모음: https://samho4987-rgb.github.io/maemul-check/prompts.html)
+
 광고에 적을 값과 건축물대장을 항목별로 대조해 누락·불일치를 게시 전에 잡아주는 무료 도구입니다.
 공인중개사법 제18조의2 명시사항 위반을 올리기 전에 거릅니다.
 
@@ -171,3 +174,23 @@ tests/             test_engine.py (설계 3.4 더미 5건 + 고시 룰) · test_
 - 설계 6절 1단계의 `/api/building?region&jibun`(동 목록 조회)은 6.1 명세에 없어 미구현 → 세션 3 에서 필요하면 추가. 지금은 422 `candidates` 로 동 목록을 받을 수 있음
 - Render 는 기본적으로 레포 루트의 `render.yaml` 을 찾음 → 세션 3 에서 Blueprint 경로를 `server/render.yaml` 로 지정하거나 루트로 옮길 것
 - 다음 세션 3: `web/index.html` + GitHub Pages + Render 배포
+
+### 세션 3 (2026-10-25) — 웹 화면 + 배포
+
+**완료**
+- `docs/index.html`(3단계 화면, 단일 파일·빌드 없음) · `docs/prompts.html`(PROMPTS.md 복사 버튼 페이지) · `docs/config.js`
+- `render.yaml` 레포 루트로 이동 → Render Blueprint 배포 (`maemul-check-api`)
+- GitHub Pages: `main` / `docs` → https://samho4987-rgb.github.io/maemul-check/
+- `config.js` 에 Render 주소·카카오 JS 키 반영
+- PROMPTS.md 3편: Render 배포·카카오 「JS SDK 도메인」 절차를 실제 화면 기준으로 보강
+
+**현재 (확인 결과, 2026-10-25)**
+- `GET /api/ping` → 200 `{"ok":true}`
+- Pages `index.html` · `prompts.html` → 200
+- CORS: `Origin: https://samho4987-rgb.github.io` 프리플라이트에 같은 값으로 허용 응답
+- 배포 API 로 `POST /api/verify` 1건(광안동 170-5 301호 + `examples/ad.json`) → 200, `register_error` 없음(실제 대장 조회 성공 = Render 의 `DATA_GO_KR_API_KEY` 정상), 종합 "수정 필요"
+
+**막힌 부분 / 다음**
+- 브라우저 화면에서 카카오 주소검색 → 검수까지 한 바퀴는 위 curl 확인과 별도로 사람이 확인할 것 (카카오 JS SDK 도메인 등록 여부는 터미널에서 검증 불가)
+- Render 무료 플랜 콜드스타트(첫 호출 ~50초)는 그대로. 한도 DB(SQLite)는 재배포·슬립 후 초기화될 수 있음
+- 세션 2 에서 넘어온 과제 유지: `client_token` 우회 가능(IP 한도 겹치기), 방향 기준이 종류와 맞는지 검사, `/api/building` 동 목록 조회 미구현(422 `candidates` 로 대체 중)
