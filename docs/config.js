@@ -6,6 +6,6 @@
 //               넣으면 주소를 직접 타이핑했을 때 도로명 → 지번 변환을 해준다.
 //               공개 키라 레포에 올려도 되지만, 카카오 플랫폼 → Web → 사이트 도메인 제한을 반드시 걸 것.
 window.MAEMUL_CONFIG = {
-  API_BASE: "http://localhost:8000",
-  KAKAO_JS_KEY: "",
+  API_BASE: "https://maemul-check-api.onrender.com",
+  KAKAO_JS_KEY: "3c957621bd7c1f5af6d724a24f46a973",
 };
